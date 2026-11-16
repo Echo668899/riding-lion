@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /privacy
+Disallow: /checkout
+Disallow: /r/
+Disallow: /api/
+
+Sitemap: /sitemap.xml

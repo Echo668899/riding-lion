@@ -1,0 +1,11 @@
+node_modules/
+client/dist/
+.wrangler/
+.dev.vars
+.DS_Store
+*.log
+dist/
+.turbo/
+# Generated copies from assets/riding-lion-tpl.mp4 (seed script)
+assets/templates/turn-smile/v1/source.mp4
+assets/templates/turn-smile/v1/sample-output.mp4

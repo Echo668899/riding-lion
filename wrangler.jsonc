@@ -1,0 +1,47 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "riding-lion",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-11-16",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  "assets": {
+    "directory": "./client/dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/robots.txt", "/sitemap.xml"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "riding-lion",
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "riding-lion-private"
+    }
+  ],
+  "workflows": [
+    {
+      "binding": "GENERATION_WORKFLOW",
+      "name": "riding-lion-generation",
+      "class_name": "GenerationWorkflow"
+    }
+  ],
+  "vars": {
+    "APP_NAME": "Riding Lion",
+    "ASSET_RETENTION_DAYS": "7",
+    "SIGNED_URL_TTL_SECONDS": "7200",
+    "FAL_MODEL_PATH": "bytedance/seedance-2.5/us/reference-to-video",
+    "MOCK_GENERATION": "false",
+    "EMAIL_FROM": "Riding Lion <support@ridinglion.com>"
+  }
+}

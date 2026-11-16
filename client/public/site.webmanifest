@@ -1,0 +1,13 @@
+{
+  "name": "Riding Lion",
+  "short_name": "Riding Lion",
+  "description": "Photo to AI short video — you're the star",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1210",
+  "theme_color": "#0b1210",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
