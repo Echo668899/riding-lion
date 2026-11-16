@@ -26,8 +26,21 @@ export function isMockGeneration(env: Env): boolean {
   return env.MOCK_GENERATION === "true";
 }
 
+function falBodyText(body: unknown): string {
+  if (typeof body === "string") return body;
+  if (!body || typeof body !== "object") return String(body ?? "");
+  const o = body as Record<string, unknown>;
+  const parts: string[] = [];
+  for (const key of ["detail", "error", "message", "msg", "title", "error_type"]) {
+    const v = o[key];
+    if (typeof v === "string" && v.trim()) parts.push(v);
+    else if (v != null && typeof v !== "string") parts.push(JSON.stringify(v));
+  }
+  return parts.join(" | ") || JSON.stringify(body);
+}
+
 export function mapFalUserError(status: number, body: unknown): { code: string; message: string } {
-  const text = typeof body === "string" ? body : JSON.stringify(body ?? {});
+  const text = falBodyText(body);
   const lower = text.toLowerCase();
   if (status === 403 || lower.includes("permission") || lower.includes("not enabled")) {
     return {
@@ -41,12 +54,13 @@ export function mapFalUserError(status: number, body: unknown): { code: string; 
     lower.includes("content_policy") ||
     lower.includes("likeness") ||
     lower.includes("real people") ||
-    lower.includes("partner_validation")
+    lower.includes("partner_validation") ||
+    lower.includes("unexpected status code: 422")
   ) {
     return {
       code: "fal_content_rejected",
       message:
-        "The model rejected this photo or template (likeness / content policy). Try a clear authorized solo portrait, or wait until real-person mode is approved for your fal account.",
+        "Seedance rejected this job (HTTP 422 — usually likeness / content policy, or media that does not meet Seedance limits). Use a clear authorized solo portrait, confirm fal enabled real-person for Seedance US, and ensure the template video is 1.8–30s, 24–60fps, 9:16.",
     };
   }
   if (status === 401) {
@@ -54,7 +68,10 @@ export function mapFalUserError(status: number, body: unknown): { code: string; 
   }
   return {
     code: "fal_submit_failed",
-    message: "Video generation could not be started. Please try again or request a refund if you were charged.",
+    message:
+      text && text !== "{}"
+        ? `Video generation failed: ${text.slice(0, 280)}`
+        : "Video generation could not be started. Please try again or request a refund if you were charged.",
   };
 }
 
