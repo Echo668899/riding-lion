@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   ASSET_KEY,
   EMAIL_KEY,
@@ -26,6 +27,7 @@ export function HomePage() {
   const [busy, setBusy] = useState(false);
   const [consented, setConsented] = useState(false);
   const [email, setEmail] = useState(() => localStorage.getItem(EMAIL_KEY) || "");
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
 
   const jsonLd = useMemo(
     () =>
@@ -59,16 +61,27 @@ export function HomePage() {
     if (!accessToken) return;
     api
       .session(accessToken)
-      .then((s) => setCredits(s.creditsBalance))
+      .then((s) => {
+        setCredits(s.creditsBalance);
+        if (s.email) {
+          setAccountEmail(s.email);
+          setEmail(s.email);
+          localStorage.setItem(EMAIL_KEY, s.email);
+        } else {
+          setAccountEmail(null);
+        }
+      })
       .catch(() => {
         localStorage.removeItem(TOKEN_KEY);
         setAccessToken("");
+        setAccountEmail(null);
       });
     api
       .getEmail(accessToken)
       .then((r) => {
         if (r.email) {
           setEmail(r.email);
+          setAccountEmail(r.email);
           localStorage.setItem(EMAIL_KEY, r.email);
         }
       })
@@ -271,11 +284,23 @@ export function HomePage() {
             days — delete anytime on your result page.
           </p>
           {fileName ? <p className="muted tight">{fileName}</p> : null}
-          {accessToken ? (
-            <p className="muted tight">
-              Credits on this device: <strong style={{ color: "var(--ink)" }}>{credits}</strong>
-            </p>
-          ) : null}
+            {accessToken ? (
+              <p className="muted tight">
+                Credits{accountEmail ? " on account" : " on this device"}:{" "}
+                <strong style={{ color: "var(--ink)" }}>{credits}</strong>
+                {" · "}
+                {accountEmail ? (
+                  <Link to="/account">My library</Link>
+                ) : (
+                  <Link to="/login?next=%2Faccount">Sign in to sync</Link>
+                )}
+              </p>
+            ) : (
+              <p className="muted tight">
+                <Link to="/login?next=%2Faccount">Sign in with email</Link> to keep credits &amp; clips
+                across devices.
+              </p>
+            )}
 
           <label className="field-label" htmlFor="notify-email">
             Email for result link

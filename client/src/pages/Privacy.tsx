@@ -25,8 +25,8 @@ export function PrivacyPage() {
 
         <p>
           <strong>What we collect.</strong> The photo you upload, generation job metadata, credit/wallet
-          session tokens stored in your browser, and the email address you provide for result delivery.
-          We do not ask you to create a passworded account.
+          session tokens stored in your browser, and the email address you use for login and result
+          delivery. Sign-in is passwordless (one-time email codes). We do not store account passwords.
         </p>
 
         <p>

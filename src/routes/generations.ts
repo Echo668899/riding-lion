@@ -142,12 +142,13 @@ generationRoutes.get("/session/:accessToken", async (c) => {
   const wallet = await getWalletByToken(c.env.DB, c.req.param("accessToken"));
   if (!wallet) throw new AppError(404, "not_found", "Session not found");
   const jobs = await c.env.DB.prepare(
-    `SELECT * FROM generation_jobs WHERE access_token = ? ORDER BY created_at DESC LIMIT 20`,
+    `SELECT * FROM generation_jobs WHERE wallet_id = ? ORDER BY created_at DESC LIMIT 20`,
   )
-    .bind(wallet.access_token)
+    .bind(wallet.id)
     .all<JobRow>();
   return c.json({
     accessToken: wallet.access_token,
+    email: wallet.email || null,
     creditsBalance: wallet.credits_balance,
     jobs: await Promise.all((jobs.results ?? []).map((j) => serializeJob(c.env, c.req.raw, j))),
   });

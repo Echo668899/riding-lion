@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 export function SiteChrome({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const isHome = pathname === "/";
-  const showChrome = isHome || pathname === "/privacy";
+  const showChrome = isHome || pathname === "/privacy" || pathname === "/login" || pathname === "/account";
 
   return (
     <div className={isHome ? "app-shell home-wide home-flush" : "app-shell"}>
@@ -18,6 +18,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
             <a href="/#how-it-works">How it works</a>
             <a href="/#pricing">Pricing</a>
             <a href="/#faq">FAQ</a>
+            <Link to="/account">Account</Link>
             <Link to="/privacy">Privacy</Link>
           </div>
           <a className="nav-cta" href="/#create">
@@ -43,6 +44,8 @@ export function SiteChrome({ children }: { children: ReactNode }) {
             <a href="/#how-it-works">How it works</a>
             <a href="/#pricing">Pricing</a>
             <a href="/#faq">FAQ</a>
+            <Link to="/account">Account</Link>
+            <Link to="/login">Sign in</Link>
             <Link to="/privacy">Privacy</Link>
           </div>
         </footer>

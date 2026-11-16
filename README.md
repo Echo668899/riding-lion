@@ -132,6 +132,7 @@ Before the first Actions deploy succeeds, `wrangler.jsonc` must contain a **real
 - **From / reply-to:** `support@ridinglion.com`
 - On job success, Worker emails the private `/r/:token?job=…` link via Resend
 - Inbound mail to support@ is stored in `inbound_emails` and auto-acknowledged when `RESEND_API_KEY` is set
+- **Passwordless login:** `POST /api/auth/request-code` + `/api/auth/verify` bind credits & jobs to email; `/account` lists balance and clips (7-day retention)
 
 See [DELIVERY.md](./DELIVERY.md) for tested vs simulated vs missing production prerequisites.
 

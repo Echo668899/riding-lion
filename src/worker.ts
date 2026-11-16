@@ -8,6 +8,7 @@ import { generationRoutes } from "./routes/generations";
 import { paymentRoutes } from "./routes/payments";
 import { uploadRoutes } from "./routes/uploads";
 import { emailRoutes } from "./routes/email";
+import { authRoutes } from "./routes/auth";
 import { isMockGeneration } from "./lib/fal";
 
 export { GenerationWorkflow } from "./workflows/generation";
@@ -36,6 +37,8 @@ app.get("/robots.txt", (c) => {
 Allow: /
 Allow: /privacy
 Disallow: /checkout
+Disallow: /account
+Disallow: /login
 Disallow: /r/
 Disallow: /api/
 
@@ -56,6 +59,7 @@ app.get("/sitemap.xml", (c) => {
 
 app.route("/api", catalogRoutes);
 app.route("/api", uploadRoutes);
+app.route("/api", authRoutes);
 app.route("/api", emailRoutes);
 app.route("/api", paymentRoutes);
 app.route("/api", generationRoutes);

@@ -136,9 +136,50 @@ export const api = {
   getGeneration: (jobId: string, accessToken: string) =>
     request<Job>(`/api/generations/${jobId}?accessToken=${encodeURIComponent(accessToken)}`),
   session: (accessToken: string) =>
-    request<{ accessToken: string; creditsBalance: number; jobs: Job[] }>(
+    request<{ accessToken: string; email: string | null; creditsBalance: number; jobs: Job[] }>(
       `/api/session/${encodeURIComponent(accessToken)}`,
     ),
+  requestLoginCode: (email: string) =>
+    request<{ ok: boolean; expiresInSec: number; devCode?: string }>("/api/auth/request-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    }),
+  verifyLogin: (email: string, code: string, guestAccessToken?: string) =>
+    request<{
+      ok: boolean;
+      accessToken: string;
+      walletId: string;
+      email: string | null;
+      creditsBalance: number;
+    }>("/api/auth/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code, guestAccessToken }),
+    }),
+  account: (accessToken: string) =>
+    request<{
+      email: string;
+      accessToken: string;
+      creditsBalance: number;
+      retentionDays: number;
+      clips: Array<{
+        jobId: string;
+        status: string;
+        createdAt: number;
+        creditsCharged: number;
+        retainUntil: number | null;
+        retentionDays: number;
+        daysLeft: number | null;
+        available: boolean;
+        expired: boolean;
+        deleted: boolean;
+        errorMessage: string | null;
+        playUrl: string | null;
+        downloadUrl: string | null;
+        resultPath: string;
+      }>;
+    }>(`/api/account?accessToken=${encodeURIComponent(accessToken)}`),
   refund: (jobId: string, accessToken: string, reason?: string) =>
     request<{ jobId: string; refundStatus: string; creditsBalance: number; notice?: string }>(
       `/api/generations/${jobId}/refund`,
