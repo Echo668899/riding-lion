@@ -152,9 +152,15 @@ export async function requestLoginCode(
     expiresInSec: CODE_TTL_SEC,
   };
   if ("skipped" in sent && sent.skipped) {
-    // Local / missing RESEND_API_KEY — surface code once for operators
+    // Local / missing RESEND_API_KEY — log for operators; never expose on public hosts
     console.warn("Login code (Resend skipped):", email, code);
-    result.devCode = code;
+    const base = (env.APP_BASE_URL || "").toLowerCase();
+    const local =
+      !base ||
+      base.includes("localhost") ||
+      base.includes("127.0.0.1") ||
+      base.includes("workers.dev");
+    if (local) result.devCode = code;
   }
   return result;
 }
