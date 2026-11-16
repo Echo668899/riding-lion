@@ -10,6 +10,7 @@ export type Catalog = {
   appName: string;
   retentionDays: number;
   mockGeneration: boolean;
+  mockPayments?: boolean;
   template: {
     id: string;
     slug: string;
@@ -25,6 +26,8 @@ export type Catalog = {
       samplePhotoUrl: string | null;
       sampleOutputUrl: string | null;
       sampleKind: "sample_output" | "template_preview";
+      publicTemplateVideoUrl?: string;
+      publicCoverUrl?: string;
     } | null;
   } | null;
   creditPacks: CreditPack[];

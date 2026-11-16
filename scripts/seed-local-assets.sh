@@ -15,7 +15,13 @@ if [[ ! -f "$TPL" ]]; then
 fi
 
 cp -f "$TPL" "$DIR/source.mp4"
-cp -f "$TPL" "$DIR/sample-output.mp4"
+# Do not copy the plate as sample-output — identical bytes falsely claim a generated result.
+# Place a distinct verified render at assets/sample-output.mp4 when available.
+if [[ -f "$ROOT/assets/sample-output.mp4" ]]; then
+  cp -f "$ROOT/assets/sample-output.mp4" "$DIR/sample-output.mp4"
+else
+  rm -f "$DIR/sample-output.mp4"
+fi
 
 if [[ -f "$PERSON" ]]; then
   cp -f "$PERSON" "$DIR/sample-photo.jpg"
@@ -56,7 +62,9 @@ put() {
 }
 
 put "templates/turn-smile/v1/source.mp4" "$DIR/source.mp4" "video/mp4"
-put "templates/turn-smile/v1/sample-output.mp4" "$DIR/sample-output.mp4" "video/mp4"
+if [[ -f "$DIR/sample-output.mp4" ]]; then
+  put "templates/turn-smile/v1/sample-output.mp4" "$DIR/sample-output.mp4" "video/mp4"
+fi
 put "templates/turn-smile/v1/cover.jpg" "$DIR/cover.jpg" "image/jpeg"
 put "templates/turn-smile/v1/sample-photo.jpg" "$DIR/sample-photo.jpg" "image/jpeg"
 

@@ -34,12 +34,13 @@ export function HomePage() {
       homeJsonLd(
         typeof window !== "undefined" ? window.location.origin : "",
         (catalog?.creditPacks || []).map((p) => ({ name: p.label, price: p.priceCents })),
+        { mockPayments: catalog?.mockPayments !== false },
       ),
-    [catalog?.creditPacks],
+    [catalog?.creditPacks, catalog?.mockPayments],
   );
 
   usePageSeo({
-    title: `${SITE.name} – Photo to AI Short Video | Face Swap Clip`,
+    title: SITE.title,
     description: SITE.description,
     path: "/",
     jsonLd,
@@ -90,9 +91,14 @@ export function HomePage() {
 
   const packs: CreditPack[] = catalog?.creditPacks || [];
   const media = catalog?.template?.media;
-  const heroSrc = media?.sourceVideoUrl || undefined;
-  const resultVideoSrc = media?.sampleOutputUrl || heroSrc;
-  const coverUrl = media?.coverUrl || undefined;
+  const templateTitle = catalog?.template?.title || "Night Road Lion Ride";
+  const hasVerifiedSample = media?.sampleKind === "sample_output" && Boolean(media.sampleOutputUrl);
+  const heroSrc =
+    media?.publicTemplateVideoUrl || media?.sourceVideoUrl || undefined;
+  const resultVideoSrc = hasVerifiedSample
+    ? media?.sampleOutputUrl || undefined
+    : heroSrc;
+  const coverUrl = media?.publicCoverUrl || media?.coverUrl || undefined;
   const priceCredits = catalog?.template?.priceCredits || 1;
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const hasCredits = Boolean(assetId && accessToken && credits >= priceCredits);
@@ -100,13 +106,17 @@ export function HomePage() {
   const durationSec = catalog?.template?.durationSec
     ? Math.round(catalog.template.durationSec)
     : 9;
+  const fromPrice = packs.length
+    ? Math.min(...packs.map((p) => p.priceCents))
+    : 999;
+  const mockPayments = catalog?.mockPayments !== false;
 
   const ctaLabel = useMemo(() => {
-    if (!assetId) return "Add a photo to continue";
+    if (!assetId) return "Upload My Photo";
     if (!emailOk) return "Add your email to continue";
     if (!consented) return "Confirm permission to continue";
-    if (canGenerate) return `Make my short · ${priceCredits} credit`;
-    return "Buy credits & make my short";
+    if (canGenerate) return `Make my Riding Lion video · ${priceCredits} credit`;
+    return "Buy credits & make my video";
   }, [assetId, canGenerate, consented, emailOk, priceCredits]);
 
   async function onFile(file: File | null) {
@@ -209,18 +219,16 @@ export function HomePage() {
         </div>
         <div className="hero-bleed-copy">
           <h1 className="brand-mark">
-            Riding Lion.
-            <span className="brand-mark-sub"> You’re the star.</span>
+            Make a Riding Lion AI Video
+            <span className="brand-mark-sub"> From Your Photo</span>
           </h1>
-          <p className="lede">
-            One authorized portrait → an 8–10s silent 9:16 AI short. Same camera and motion. No prompts.
-          </p>
+          <p className="lede">{SITE.lede}</p>
           <div className="hero-cta-row">
             <a className="btn btn-primary hero-cta" href="#create">
-              Create a video
+              Upload My Photo
             </a>
             <a className="hero-secondary-link" href="#examples">
-              See examples
+              See the original template
             </a>
           </div>
         </div>
@@ -229,18 +237,25 @@ export function HomePage() {
       <div className="value-ribbon" role="presentation">
         <span>Your photo</span>
         <i aria-hidden="true">+</i>
-        <span>AI face replacement</span>
+        <span>Night-road lion ride</span>
         <i aria-hidden="true">+</i>
-        <span>8–10s short</span>
+        <span>~{durationSec}s · 9:16</span>
         <i aria-hidden="true">+</i>
-        <span>One-time credits</span>
+        <span>From {formatUsd(fromPrice)}</span>
       </div>
 
+      {mockPayments ? (
+        <p className="notice" style={{ marginTop: 12 }} role="status">
+          Checkout is currently <strong>simulated</strong> — you will not be charged a real card. Pack
+          prices still show what you will pay when live billing opens.
+        </p>
+      ) : null}
+
       <section className="section create-section" id="create" aria-labelledby="create-heading">
-        <h2 id="create-heading">Make your Riding Lion short</h2>
+        <h2 id="create-heading">Upload My Photo</h2>
         <p>
-          Upload a clear solo portrait, choose credits, and generate. Template: Turn &amp; Smile ·{" "}
-          {durationSec}s · 9:16 · silent · {priceCredits} credit.
+          Template: <strong>{templateTitle}</strong> · ~{durationSec}s · 9:16 · preview muted ·{" "}
+          {priceCredits} credit. Your portrait replaces the featured rider on the night-road lion ride.
         </p>
 
         <div className="create-panel" id="examples-create">
@@ -370,7 +385,7 @@ export function HomePage() {
           </button>
           {packLine ? (
             <p className="muted tight center-text">
-              Credits: {packLine}. No subscription.
+              Credits: {packLine}. From {formatUsd(fromPrice)}. No subscription.
             </p>
           ) : null}
           {error ? <div className="notice danger">{error}</div> : null}
@@ -378,25 +393,32 @@ export function HomePage() {
       </section>
 
       <section className="section" id="examples" aria-labelledby="examples-heading">
-        <h2 id="examples-heading">Riding Lion. A fixed short, a new face.</h2>
-        <p>
-          The turn, the look to camera, the smile stay. You replace the featured performer with one clear
-          portrait — built for TikTok, Reels, and YouTube Shorts.
-        </p>
+        <h2 id="examples-heading">See the Original Lion Ride and the Generated Result</h2>
+        {hasVerifiedSample ? (
+          <p>
+            Left: ordinary input portrait. Right: generated Riding Lion result after face replacement on
+            the night-road template. Preview players are muted; downloaded files may include the template
+            soundtrack.
+          </p>
+        ) : (
+          <p>
+            Showing the <strong>original Riding Lion template</strong> (night-road lion ride). A verified
+            before/after with an ordinary portrait will appear here once a distinct sample output is
+            published. Preview plays muted; the public MP4 includes an AAC soundtrack.
+          </p>
+        )}
         <div className="compare">
           <figure>
-            {media?.samplePhotoUrl ? (
-              <div className="phone-frame">
-                <img src={media.samplePhotoUrl} alt="Example portrait for AI photo to video" />
-              </div>
-            ) : coverUrl ? (
-              <div className="phone-frame">
-                <img src={coverUrl} alt="Template cover" />
-              </div>
-            ) : (
-              <div className="phone-frame empty-frame">Loading sample…</div>
-            )}
-            <figcaption>Your photo moment</figcaption>
+            <div className="phone-frame">
+              {hasVerifiedSample && media?.samplePhotoUrl ? (
+                <img src={media.samplePhotoUrl} alt="Ordinary input portrait for Riding Lion AI video" />
+              ) : coverUrl ? (
+                <img src={coverUrl} alt="Night-road lion ride template cover" />
+              ) : (
+                <div className="empty-frame">Loading…</div>
+              )}
+            </div>
+            <figcaption>{hasVerifiedSample ? "Input portrait" : "Template cover"}</figcaption>
           </figure>
           <figure>
             <div className="phone-frame">
@@ -408,22 +430,31 @@ export function HomePage() {
                   loop
                   playsInline
                   controls
-                  title="Result preview"
+                  title={hasVerifiedSample ? "Generated Riding Lion result" : "Original Riding Lion Template"}
                 />
               ) : coverUrl ? (
-                <img src={coverUrl} alt="Preview cover" />
+                <img src={coverUrl} alt="Template preview cover" />
               ) : (
                 <div className="empty-frame">Loading preview…</div>
               )}
             </div>
-            <figcaption>Your Riding Lion short</figcaption>
+            <figcaption>
+              {hasVerifiedSample ? "Generated result" : "Original Riding Lion Template"}
+            </figcaption>
           </figure>
         </div>
+        {media?.publicTemplateVideoUrl ? (
+          <p className="muted tight" style={{ marginTop: 12 }}>
+            <a href={media.publicTemplateVideoUrl}>Open crawlable template MP4</a>
+            {" · "}
+            Preview muted by default · soundtrack present in the file
+          </p>
+        ) : null}
       </section>
 
       <section className="section" id="how-it-works" aria-labelledby="how-heading">
-        <h2 id="how-heading">Your Riding Lion short, step by step.</h2>
-        <p>Photo to AI short video in four moves — no prompt engineering.</p>
+        <h2 id="how-heading">How to make a Riding Lion AI video</h2>
+        <p>One portrait, one fixed night-road template — no prompt engineering.</p>
         <ol className="how-list">
           {HOW_STEPS.map((step, i) => (
             <li key={step.name}>
@@ -437,10 +468,11 @@ export function HomePage() {
       </section>
 
       <section className="section" id="pricing" aria-labelledby="pricing-heading">
-        <h2 id="pricing-heading">Riding Lion credits. Pay once, keep making shorts.</h2>
+        <h2 id="pricing-heading">How much does a Riding Lion AI video cost?</h2>
         <p>
-          Each finished clip uses <strong>1 credit</strong>. No subscription. Recommended pack: 3 credits for{" "}
-          {recommendedPrice}.
+          <strong>1 credit = 1 finished video.</strong> From {formatUsd(fromPrice)}. Recommended pack: 3
+          credits for {recommendedPrice}.{" "}
+          {mockPayments ? "Checkout is simulated today — no real card charge." : null}
         </p>
         <div className="packs">
           {packs.map((pack) => (
@@ -470,13 +502,13 @@ export function HomePage() {
           href="#create"
           style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 14 }}
         >
-          Create a video
+          Upload My Photo
         </a>
       </section>
 
       <section className="section" id="faq" aria-labelledby="faq-heading">
-        <h2 id="faq-heading">Riding Lion: your questions answered.</h2>
-        <p>Straight answers about photo-to-video shorts, credits, and face replacement.</p>
+        <h2 id="faq-heading">Riding Lion FAQ</h2>
+        <p>Sound, pricing, which rider your photo replaces, and what happens if generation fails.</p>
         <div className="faq-list">
           {FAQ_ITEMS.map((item) => (
             <details key={item.q} className="faq-item">

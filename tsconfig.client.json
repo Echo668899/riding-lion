@@ -10,7 +10,12 @@
     "noEmit": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["shared/*"],
+      "@shared/site-content": ["shared/site-content.ts"]
+    }
   },
-  "include": ["client/src/**/*.ts", "client/src/**/*.tsx"]
+  "include": ["client/src/**/*.ts", "client/src/**/*.tsx", "shared/**/*.ts"]
 }

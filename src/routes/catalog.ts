@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { getActiveTemplate, listCreditPacks } from "../lib/db";
 import { isMockGeneration } from "../lib/fal";
 import { appBaseUrl, retentionDays, signedMediaUrl } from "../lib/media";
+import { PUBLIC_EXAMPLE_PATHS } from "../../shared/site-content";
 
 type Bindings = { Bindings: Env };
 
@@ -18,6 +19,8 @@ catalogRoutes.get("/catalog", async (c) => {
     samplePhotoUrl: string | null;
     sampleOutputUrl: string | null;
     sampleKind: "sample_output" | "template_preview";
+    publicTemplateVideoUrl: string;
+    publicCoverUrl: string;
   } | null = null;
 
   if (template) {
@@ -28,23 +31,41 @@ catalogRoutes.get("/catalog", async (c) => {
     const samplePhotoUrl = template.sample_photo_key
       ? await signedMediaUrl(c.env, base, template.sample_photo_key).catch(() => null)
       : null;
+
     let sampleOutputUrl: string | null = null;
     let sampleKind: "sample_output" | "template_preview" = "template_preview";
-    if (template.sample_output_key) {
-      sampleOutputUrl = await signedMediaUrl(c.env, base, template.sample_output_key).catch(() => null);
-      if (sampleOutputUrl) sampleKind = "sample_output";
+
+    if (template.sample_output_key && template.sample_output_key !== template.source_video_key) {
+      const [srcHead, sampleHead] = await Promise.all([
+        c.env.BUCKET.head(template.source_video_key),
+        c.env.BUCKET.head(template.sample_output_key),
+      ]);
+      const distinct =
+        srcHead &&
+        sampleHead &&
+        !(srcHead.size === sampleHead.size && srcHead.etag === sampleHead.etag);
+      if (distinct) {
+        sampleOutputUrl = await signedMediaUrl(c.env, base, template.sample_output_key).catch(() => null);
+        if (sampleOutputUrl) sampleKind = "sample_output";
+      }
     }
-    if (!sampleOutputUrl) {
-      sampleOutputUrl = sourceVideoUrl;
-      sampleKind = "template_preview";
-    }
-    templateMedia = { sourceVideoUrl, coverUrl, samplePhotoUrl, sampleOutputUrl, sampleKind };
+
+    templateMedia = {
+      sourceVideoUrl,
+      coverUrl,
+      samplePhotoUrl,
+      sampleOutputUrl,
+      sampleKind,
+      publicTemplateVideoUrl: `${base}${PUBLIC_EXAMPLE_PATHS.templateVideo}`,
+      publicCoverUrl: `${base}${PUBLIC_EXAMPLE_PATHS.cover}`,
+    };
   }
 
   return c.json({
     appName: c.env.APP_NAME || "Riding Lion",
     retentionDays: retentionDays(c.env),
     mockGeneration: isMockGeneration(c.env),
+    mockPayments: true,
     template: template
       ? {
           id: template.id,

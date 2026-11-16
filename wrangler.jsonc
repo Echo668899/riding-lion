@@ -12,8 +12,9 @@
   },
   "assets": {
     "directory": "./client/dist",
-    "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/robots.txt", "/sitemap.xml"]
+    "binding": "ASSETS",
+    "not_found_handling": "none",
+    "run_worker_first": true
   },
   "d1_databases": [
     {

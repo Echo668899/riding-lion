@@ -1,52 +1,54 @@
 # Riding Lion — SEO / GEO keyword & structure map
 
-English-first site. Optimize for search + generative answers (Google AI Overviews, Perplexity, ChatGPT browsing) with clear entities, FAQs, and facts — not keyword stuffing.
+English-first site. Optimize for the **riding lion AI video** intent first; treat generic “AI photo to video / face swap” as supporting body language only.
 
 ## Keyword pillars
 
 | Priority | Intent | Target phrases | Where to place |
 |----------|--------|----------------|----------------|
-| P0 brand | Navigational | Riding Lion | H1, title, Organization schema |
-| P0 product | Transactional | AI photo to video, turn photo into video, AI short video from photo | Title/description, H2, HowTo, FAQ |
-| P0 product | Transactional | AI face swap video, AI video face replacement, replace face in video AI | FAQ, feature list, SoftwareApplication `featureList` |
-| P1 platform | Commercial | TikTok / Reels / YouTube Shorts vertical short | FAQ + body copy once |
-| P1 format | Informational | 9:16 silent short, image to video AI | What you get / How it works |
-| Avoid as primary | Risky brand | deepfake (mention only to clarify authorized, paid, template-bound use) | FAQ differentiation only |
+| P0 brand+scene | Transactional | Riding Lion AI video generator, AI lion riding video, make a video of me riding a lion | Title, H1, hero lede |
+| P0 proof | Commercial | riding lion AI video example, riding lion AI before and after | `/#examples` |
+| P0 trust | Commercial | how much does a riding lion AI video cost, does the riding lion AI video have sound | `/#pricing`, `/#faq` |
+| P1 later | Informational | how to make a riding lion AI video / trend | Future `/how-to-make-a-riding-lion-ai-video` |
+| Support only | Feature language | AI photo to video, image to video AI, AI face swap video | Body / FAQ differentiation — not title center |
 
-**Do not** chase “free AI face swap” as a ranking promise — product is credit-paid.
+**Do not** claim “silent” as the product promise. Preview is muted; template MP4 includes AAC audio.
+
+**Do not** chase “free AI face swap” as a ranking promise — product is credit-paid (demo checkout until live PSP).
 
 ## Site structure
 
 ```
-/                 indexable — hero + proof + upload/CTA + how-to + pricing facts + FAQ
-/privacy          indexable — retention & likeness policy (trust / GEO)
-/checkout         noindex — transactional mock pay
-/r/:token         noindex — private result credential
+/                 indexable — Worker prerender + React hydrate
+/privacy          indexable — Worker prerender
+/checkout         noindex — simulated pay
+/login /account   noindex
+/r/:token         noindex — private result
+/media/examples/* crawlable public template + cover
 /api/*            disallowed in robots.txt
 ```
 
-Crawlables: `robots.txt`, `sitemap.xml` (absolute locs rewritten at deploy if needed).
+Unknown paths return **HTTP 404**. `www` → apex 301. Canonical host: `https://ridinglion.com`.
 
-## On-page layout (home) — aligned with Tiny Desk pattern
+## On-page layout (home)
 
-Reference structure from ai-tinydesk.com (not visual clone):
-
-1. Nav: brand · Examples · How it works · Pricing · FAQ · **Create a video** CTA
-2. Full-bleed hero: brand H1 + one lede + CTA group over edge-to-edge sample/template film (create form is below the fold)
-3. Value ribbon keywords: Your photo + AI face replacement + 8–10s short + One-time credits
-4. Create section `#create` (upload, consent, packs, CTA — interaction panel)
-5. Examples section (brand-in-H2)
-6. How it works (numbered steps / HowTo schema)
-7. Pricing detail (packs + Create CTA)
-8. FAQ with brand-repeated questions (FAQPage JSON-LD)
-9. Footer disclaimer + internal links
+1. Nav: brand · Examples · How it works · Pricing · FAQ · **Upload My Photo**
+2. Full-bleed hero: H1 “Make a Riding Lion AI Video From Your Photo” + lede + CTA
+3. Value ribbon + simulated-checkout notice when applicable
+4. `#create` upload / packs (template title from catalog)
+5. `#examples` — original template until distinct sample_output exists
+6. How it works · Pricing · FAQ (five GEO questions)
+7. Footer
 
 ## GEO checklist
 
-- [x] Answer-first FAQ (50–150 word factual answers)
-- [x] JSON-LD: Organization, WebSite, SoftwareApplication, HowTo, FAQPage
-- [x] Canonical + Open Graph on indexable pages
+- [x] Answer-first FAQ (night road, which rider, photo quality, sound, price/failure)
+- [x] JSON-LD: Organization, WebSite, SoftwareApplication, HowTo, FAQPage, VideoObject (original template)
+- [x] HowTo without unverified `totalTime`
+- [x] Offers use `PreOrder` while payments are simulated
+- [x] Canonical + Open Graph absolute on prerender
 - [x] Private flows `noindex`
-- [x] Semantic sections / headings
+- [x] Public `/media/examples/` allowed in robots.txt
+- [ ] Distinct verified before/after sample (ordinary portrait → generated result)
+- [ ] OG image showing person + lion + night road
 - [ ] Submit sitemap in Search Console after production domain
-- [x] OG image `client/public/og-image.jpg` (1200×630) + favicon set + webmanifest

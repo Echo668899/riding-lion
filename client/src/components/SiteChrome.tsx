@@ -22,7 +22,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
             <Link to="/privacy">Privacy</Link>
           </div>
           <a className="nav-cta" href="/#create">
-            Create a video
+            Upload My Photo
           </a>
         </nav>
       ) : null}

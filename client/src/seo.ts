@@ -1,71 +1,23 @@
 import { useEffect } from "react";
+import {
+  CANONICAL_ORIGIN,
+  FAQ_ITEMS as FAQ_ITEMS_IMPORT,
+  HOW_STEPS as HOW_STEPS_IMPORT,
+  PUBLIC_EXAMPLE_PATHS,
+  SITE as SHARED_SITE,
+  packSummary,
+} from "@shared/site-content";
 
+export const FAQ_ITEMS: { q: string; a: string }[] = [...FAQ_ITEMS_IMPORT];
+export const HOW_STEPS: { name: string; text: string }[] = [...HOW_STEPS_IMPORT];
 export const SITE = {
-  name: "Riding Lion",
-  tagline: "Photo to AI short video — you're the star",
-  description:
-    "Riding Lion is a photo-to-AI-short-video tool. Upload one authorized portrait, buy credits, and get an 8–10s silent 9:16 face-replacement clip from a fixed template — no prompts. Built for TikTok, Reels, and YouTube Shorts.",
-  // Primary / secondary English keywords for copy & meta (not stuffed into one string)
-  primaryKeywords: [
-    "AI photo to video",
-    "AI face swap video",
-    "turn photo into video",
-    "AI short video from photo",
-  ],
-  secondaryKeywords: [
-    "AI video face replacement",
-    "replace face in video AI",
-    "image to video AI",
-    "AI video face swap online",
-    "vertical short video AI",
-  ],
+  name: SHARED_SITE.name,
+  tagline: SHARED_SITE.tagline,
+  description: SHARED_SITE.description,
+  title: SHARED_SITE.title,
+  h1: SHARED_SITE.h1,
+  lede: SHARED_SITE.lede,
 };
-
-export const FAQ_ITEMS: { q: string; a: string }[] = [
-  {
-    q: "What is Riding Lion?",
-    a: "Riding Lion is an AI photo-to-video tool that places you into a fixed short film template. You upload one clear solo photo of yourself (or someone who authorized you), pay with credits, and get a silent 8–10 second 9:16 clip where your face and hairstyle replace the template performer while motion and camera stay the same.",
-  },
-  {
-    q: "How do I turn a photo into an AI short video?",
-    a: "Open Riding Lion, preview the template, upload a well-lit JPG/PNG/WebP portrait, choose a credit pack (3 credits for $19.99 is recommended), complete checkout, and generation starts automatically. One finished clip uses 1 credit. You do not write prompts or pick model settings.",
-  },
-  {
-    q: "Is this the same as a free AI face swap video app?",
-    a: "It is related to AI face swap video / face replacement, but Riding Lion is template-first: one curated silent street-turn clip, pay-per-credit delivery, and no free unlimited deepfake playground. Photos and results are private, retained for 7 days by default, and deletable from your result link.",
-  },
-  {
-    q: "What photo works best for AI video face replacement?",
-    a: "Use a single-person portrait with even lighting and a clear face. Avoid sunglasses, heavy blur, group shots, or cropped faces. Riding Lion supports JPG, PNG, and WebP up to 15MB.",
-  },
-  {
-    q: "How much does an AI short from a photo cost?",
-    a: "Each finished clip costs 1 credit. Credit packs are priced in USD: 1 credit, 3 credits for $19.99 (recommended), and 6 credits for $29.99. Exact pack prices are loaded from the server at checkout.",
-  },
-  {
-    q: "Can I use the clip on TikTok, Instagram Reels, or YouTube Shorts?",
-    a: "Yes. Output is a vertical 9:16 short designed for mobile social platforms. Always follow each platform’s rules and only use photos and likenesses you have rights to.",
-  },
-];
-
-export const HOW_STEPS = [
-  {
-    name: "Preview the template",
-    text: "Watch the fixed silent 9:16 AI short film template on the homepage.",
-  },
-  {
-    name: "Upload your photo",
-    text: "Add one authorized, well-lit solo portrait (JPG, PNG, or WebP).",
-  },
-  {
-    name: "Buy credits & generate",
-    text: "Pay once for a credit pack. One credit creates one AI photo-to-video clip automatically.",
-  },
-  {
-    name: "Download your short",
-    text: "Open your private result link to play, download, or delete the finished clip.",
-  },
-];
 
 type SeoOptions = {
   title: string;
@@ -85,6 +37,13 @@ function upsertMeta(attr: "name" | "property", key: string, content: string) {
   el.content = content;
 }
 
+function canonicalOrigin(): string {
+  if (typeof window === "undefined") return CANONICAL_ORIGIN;
+  const host = window.location.hostname;
+  if (host === "ridinglion.com" || host === "www.ridinglion.com") return CANONICAL_ORIGIN;
+  return window.location.origin;
+}
+
 export function usePageSeo(opts: SeoOptions) {
   useEffect(() => {
     document.title = opts.title;
@@ -98,22 +57,25 @@ export function usePageSeo(opts: SeoOptions) {
     upsertMeta("name", "twitter:title", opts.title);
     upsertMeta("name", "twitter:description", opts.description);
 
-    const origin = window.location.origin;
+    const origin = canonicalOrigin();
     const path = opts.path ?? window.location.pathname;
-    const url = `${origin}${path}`;
-    const ogImage = `${origin}/og-image.jpg`;
+    const indexable = path === "/" || path === "/privacy";
+    const canonicalHref = indexable
+      ? `${CANONICAL_ORIGIN}${path === "/" ? "/" : path}`
+      : `${origin}${path}`;
+    const ogImage = `${CANONICAL_ORIGIN}/og-image.jpg`;
     let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement("link");
       canonical.rel = "canonical";
       document.head.appendChild(canonical);
     }
-    canonical.href = url;
-    upsertMeta("property", "og:url", url);
+    canonical.href = canonicalHref;
+    upsertMeta("property", "og:url", canonicalHref);
     upsertMeta("property", "og:image", ogImage);
     upsertMeta("property", "og:image:width", "1200");
     upsertMeta("property", "og:image:height", "630");
-    upsertMeta("property", "og:image:alt", `${SITE.name} — Photo to AI short video`);
+    upsertMeta("property", "og:image:alt", `${SITE.name} — Night-road lion ride AI video`);
     upsertMeta("name", "twitter:image", ogImage);
 
     const scriptId = "rl-jsonld";
@@ -132,14 +94,21 @@ export function usePageSeo(opts: SeoOptions) {
   }, [opts.title, opts.description, opts.path, opts.robots, JSON.stringify(opts.jsonLd)]);
 }
 
-export function homeJsonLd(origin: string, packs: { name: string; price: number }[]) {
+export function homeJsonLd(
+  _origin: string,
+  packs: { name: string; price: number }[],
+  opts?: { mockPayments?: boolean },
+) {
+  const mockPayments = opts?.mockPayments !== false;
   const offers = packs.map((p) => ({
     "@type": "Offer",
     name: p.name,
     price: (p.price / 100).toFixed(2),
     priceCurrency: "USD",
-    availability: "https://schema.org/InStock",
-    url: `${origin}/`,
+    availability: mockPayments
+      ? "https://schema.org/PreOrder"
+      : "https://schema.org/InStock",
+    url: `${CANONICAL_ORIGIN}/`,
   }));
 
   return [
@@ -147,23 +116,18 @@ export function homeJsonLd(origin: string, packs: { name: string; price: number 
       "@context": "https://schema.org",
       "@type": "Organization",
       name: SITE.name,
-      url: origin,
+      url: CANONICAL_ORIGIN,
       description: SITE.description,
-      logo: `${origin}/icon-512.png`,
+      logo: `${CANONICAL_ORIGIN}/icon-512.png`,
       email: "support@ridinglion.com",
-      image: `${origin}/og-image.jpg`,
+      image: `${CANONICAL_ORIGIN}/og-image.jpg`,
     },
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: SITE.name,
-      url: origin,
+      url: CANONICAL_ORIGIN,
       description: SITE.description,
-      potentialAction: {
-        "@type": "CreateAction",
-        name: "Create AI short video from photo",
-        target: `${origin}/`,
-      },
     },
     {
       "@context": "https://schema.org",
@@ -174,9 +138,9 @@ export function homeJsonLd(origin: string, packs: { name: string; price: number 
       description: SITE.description,
       offers: offers.length ? offers : undefined,
       featureList: [
-        "AI photo to video",
-        "AI face swap video from template",
-        "Silent 9:16 short clips",
+        "Riding Lion AI video from one photo",
+        "Night-road lion ride template",
+        "9:16 vertical short",
         "No prompt writing required",
         "Credit-based pricing",
       ],
@@ -184,10 +148,9 @@ export function homeJsonLd(origin: string, packs: { name: string; price: number 
     {
       "@context": "https://schema.org",
       "@type": "HowTo",
-      name: "How to turn a photo into an AI short video with Riding Lion",
+      name: "How to make a Riding Lion AI video from your photo",
       description:
-        "Create a vertical AI face-replacement short from one portrait using a fixed cinematic template.",
-      totalTime: "PT5M",
+        "Upload one portrait and generate a night-road lion ride AI short from the fixed Riding Lion template.",
       step: HOW_STEPS.map((s, i) => ({
         "@type": "HowToStep",
         position: i + 1,
@@ -204,5 +167,17 @@ export function homeJsonLd(origin: string, packs: { name: string; price: number 
         acceptedAnswer: { "@type": "Answer", text: item.a },
       })),
     },
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      name: "Original Riding Lion Template — Night Road Lion Ride",
+      description:
+        "Original night-road lion ride template. Homepage playback is muted; the MP4 includes an AAC soundtrack.",
+      thumbnailUrl: `${CANONICAL_ORIGIN}${PUBLIC_EXAMPLE_PATHS.cover}`,
+      contentUrl: `${CANONICAL_ORIGIN}${PUBLIC_EXAMPLE_PATHS.templateVideo}`,
+      uploadDate: "2026-11-16",
+    },
   ];
 }
+
+export { packSummary, PUBLIC_EXAMPLE_PATHS, CANONICAL_ORIGIN };

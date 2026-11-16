@@ -1,6 +1,7 @@
 interface Env {
   DB: D1Database;
   BUCKET: R2Bucket;
+  ASSETS: Fetcher;
   GENERATION_WORKFLOW: Workflow;
   APP_NAME: string;
   ASSET_RETENTION_DAYS: string;

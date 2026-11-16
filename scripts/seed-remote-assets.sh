@@ -14,7 +14,10 @@ mkdir -p "$SRC_DIR"
 if [[ ! -f "$SRC_DIR/source.mp4" ]]; then
   [[ -f "$TPL" ]] || { echo "Missing $TPL"; exit 1; }
   cp "$TPL" "$SRC_DIR/source.mp4"
-  cp "$TPL" "$SRC_DIR/sample-output.mp4"
+fi
+# Distinct verified render only — never clone the plate as “sample output”
+if [[ -f assets/sample-output.mp4 ]]; then
+  cp -f assets/sample-output.mp4 "$SRC_DIR/sample-output.mp4"
 fi
 if [[ ! -f "$SRC_DIR/sample-photo.jpg" && -f assets/default-person.jpg ]]; then
   cp assets/default-person.jpg "$SRC_DIR/sample-photo.jpg"
@@ -31,7 +34,9 @@ put() {
 }
 
 put "${PREFIX}/source.mp4" "$SRC_DIR/source.mp4" "video/mp4"
-put "${PREFIX}/sample-output.mp4" "$SRC_DIR/sample-output.mp4" "video/mp4"
+if [[ -f "$SRC_DIR/sample-output.mp4" ]]; then
+  put "${PREFIX}/sample-output.mp4" "$SRC_DIR/sample-output.mp4" "video/mp4"
+fi
 put "${PREFIX}/sample-photo.jpg" "$SRC_DIR/sample-photo.jpg" "image/jpeg"
 put "${PREFIX}/cover.jpg" "$SRC_DIR/cover.jpg" "image/jpeg"
 
