@@ -79,6 +79,7 @@ export function HomePage() {
   const media = catalog?.template?.media;
   const heroSrc = media?.sourceVideoUrl || undefined;
   const resultVideoSrc = media?.sampleOutputUrl || heroSrc;
+  const coverUrl = media?.coverUrl || undefined;
   const priceCredits = catalog?.template?.priceCredits || 1;
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const hasCredits = Boolean(assetId && accessToken && credits >= priceCredits);
@@ -162,196 +163,56 @@ export function HomePage() {
   }
 
   const packLine = packs.map((p) => `${formatUsd(p.priceCents)} / ${p.credits}`).join(" · ");
+  const recommendedPrice = packs.find((p) => p.recommended)
+    ? formatUsd(packs.find((p) => p.recommended)!.priceCents)
+    : "$19.99";
 
   return (
     <main>
       <a className="skip-link" href="#create">
-        Skip to content
+        Skip to create
       </a>
 
-      {/* Hero: create form + vertical preview (Tiny Desk pattern) */}
-      <header className="hero-split" id="create">
-        <div className="hero-copy-col">
-          <p className="eyebrow">AI photo to video</p>
+      {/* First viewport: brand + one lede + CTA + full-bleed film */}
+      <header className="hero-bleed">
+        <div className="hero-bleed-media" aria-hidden={!resultVideoSrc && !coverUrl}>
+          {resultVideoSrc ? (
+            <video
+              className="hero-bleed-video"
+              src={resultVideoSrc}
+              poster={coverUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              title="Riding Lion AI short video preview"
+            />
+          ) : coverUrl ? (
+            <img className="hero-bleed-video" src={coverUrl} alt="" />
+          ) : (
+            <div className="hero-bleed-fallback" />
+          )}
+          <div className="hero-bleed-shade" />
+        </div>
+        <div className="hero-bleed-copy">
           <h1 className="brand-mark">
             Riding Lion.
             <span className="brand-mark-sub"> You’re the star.</span>
           </h1>
           <p className="lede">
-            Turn one authorized portrait into an 8–10s silent 9:16 AI short. Same camera and motion as the
-            template — cinematic face replacement, no prompts, no settings.
+            One authorized portrait → an 8–10s silent 9:16 AI short. Same camera and motion. No prompts.
           </p>
-
-          <div className="create-card" id="examples-create">
-            <div className="create-card-head">
-              <strong>Turn &amp; Smile</strong>
-              <span>
-                {durationSec}s · 9:16 · silent · {priceCredits} credit
-              </span>
-            </div>
-
-            <label className={`photo-slot${previewUrl ? " has-file" : ""}`}>
-              {previewUrl ? (
-                <img src={previewUrl} alt="Your upload preview" />
-              ) : media?.samplePhotoUrl ? (
-                <img src={media.samplePhotoUrl} alt="Default example person" className="photo-slot-default" />
-              ) : (
-                <span className="photo-slot-empty">
-                  <strong>+ Add photo</strong>
-                  <em>Lead / featured person · required</em>
-                </span>
-              )}
-              {!previewUrl && media?.samplePhotoUrl ? (
-                <span className="photo-slot-overlay">
-                  <strong>+ Add photo</strong>
-                  <em>or use the example below</em>
-                </span>
-              ) : null}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={(e) => onFile(e.target.files?.[0] || null)}
-              />
-            </label>
-            {media?.samplePhotoUrl ? (
-              <button
-                type="button"
-                className="btn btn-secondary example-photo-btn"
-                disabled={busy}
-                onClick={useExamplePhoto}
-              >
-                Use example person photo
-              </button>
-            ) : null}
-            <p className="hint tight">
-              Clear, centered, front-facing solo portrait. JPG, PNG or WebP. Kept {catalog?.retentionDays ?? 7}{" "}
-              days — delete anytime on your result page.
-            </p>
-            {fileName ? <p className="muted tight">{fileName}</p> : null}
-            {accessToken ? (
-              <p className="muted tight">
-                Credits on this device: <strong style={{ color: "var(--ink)" }}>{credits}</strong>
-              </p>
-            ) : null}
-
-            <label className="field-label" htmlFor="notify-email">
-              Email for result link
-            </label>
-            <input
-              id="notify-email"
-              className="text-input"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                localStorage.setItem(EMAIL_KEY, e.target.value.trim().toLowerCase());
-              }}
-            />
-            <p className="hint tight">
-              We email you from {SUPPORT_EMAIL} when the short is ready. Replies go to the same inbox.
-            </p>
-
-            {!hasCredits ? (
-              <div className="packs compact" id="pricing" role="listbox" aria-label="Credit packs">
-                {packs.map((pack) => (
-                  <button
-                    key={pack.id}
-                    type="button"
-                    className={`pack ${selectedPack === pack.id ? "selected" : ""} ${pack.recommended ? "recommended" : ""}`}
-                    onClick={() => {
-                      setSelectedPack(pack.id);
-                      localStorage.setItem(PACK_KEY, pack.id);
-                    }}
-                  >
-                    <span>
-                      {pack.label}
-                      {pack.recommended ? <span className="tag">Recommended</span> : null}
-                    </span>
-                    <span className="price">{formatUsd(pack.priceCents)}</span>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div id="pricing" className="panel tight-panel">
-                <p style={{ margin: 0 }}>
-                  <strong>1 credit = 1 finished Riding Lion short.</strong> You have {credits} ready.
-                </p>
-              </div>
-            )}
-
-            <label className="consent">
-              <input
-                type="checkbox"
-                checked={consented}
-                onChange={(e) => setConsented(e.target.checked)}
-              />
-              <span>
-                I’m 18+ and have permission to animate every uploaded subject. I will not use the result to
-                impersonate or deceive anyone.
-              </span>
-            </label>
-
-            <button
-              className="btn btn-primary"
-              disabled={!assetId || !consented || !emailOk || busy}
-              onClick={onPrimary}
-            >
-              {busy ? "Working…" : ctaLabel}
-            </button>
-            {packLine ? (
-              <p className="muted tight center-text">
-                Credits: {packLine}. No subscription.
-              </p>
-            ) : null}
-            {error ? <div className="notice danger">{error}</div> : null}
-            {catalog?.mockGeneration ? (
-              <p className="muted tight">
-                Mock generation is on — add FAL_KEY (and keep MOCK_GENERATION=false) for live Seedance
-                editing.
-              </p>
-            ) : (
-              <p className="muted tight">Live fal Seedance editing is enabled for this session.</p>
-            )}
+          <div className="hero-cta-row">
+            <a className="btn btn-primary hero-cta" href="#create">
+              Create a video
+            </a>
+            <a className="hero-secondary-link" href="#examples">
+              See examples
+            </a>
           </div>
         </div>
-
-        <aside className="hero-media-col" aria-label="What you get">
-          <div className="hero-video-wrap">
-            <div className="hero-phone">
-              {resultVideoSrc ? (
-                <video
-                  src={resultVideoSrc}
-                  poster={media?.coverUrl || undefined}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  controls
-                  title="Riding Lion AI short video preview"
-                />
-              ) : (
-                <div className="hero-phone-fallback">Preview pending</div>
-              )}
-            </div>
-            {media?.samplePhotoUrl ? (
-              <div className="polaroid">
-                <img src={media.samplePhotoUrl} alt="Example input photo for Riding Lion" />
-                <span>Input</span>
-              </div>
-            ) : null}
-          </div>
-          <p className="hero-media-caption">
-            <strong>What you get:</strong> an 8–10s vertical AI face-swap short from your photo.{" "}
-            {media?.sampleKind === "sample_output"
-              ? "Sample finished clip shown."
-              : "Template preview (original) shown until a sample output is uploaded."}
-          </p>
-        </aside>
       </header>
 
-      {/* Keyword / value ribbon */}
       <div className="value-ribbon" role="presentation">
         <span>Your photo</span>
         <i aria-hidden="true">+</i>
@@ -361,6 +222,135 @@ export function HomePage() {
         <i aria-hidden="true">+</i>
         <span>One-time credits</span>
       </div>
+
+      <section className="section create-section" id="create" aria-labelledby="create-heading">
+        <h2 id="create-heading">Make your Riding Lion short</h2>
+        <p>
+          Upload a clear solo portrait, choose credits, and generate. Template: Turn &amp; Smile ·{" "}
+          {durationSec}s · 9:16 · silent · {priceCredits} credit.
+        </p>
+
+        <div className="create-panel" id="examples-create">
+          <label className={`photo-slot${previewUrl ? " has-file" : ""}`}>
+            {previewUrl ? (
+              <img src={previewUrl} alt="Your upload preview" />
+            ) : media?.samplePhotoUrl ? (
+              <img src={media.samplePhotoUrl} alt="Default example person" className="photo-slot-default" />
+            ) : coverUrl ? (
+              <img src={coverUrl} alt="" className="photo-slot-default" />
+            ) : (
+              <span className="photo-slot-empty">
+                <strong>+ Add photo</strong>
+                <em>Lead / featured person · required</em>
+              </span>
+            )}
+            {!previewUrl && (media?.samplePhotoUrl || coverUrl) ? (
+              <span className="photo-slot-overlay">
+                <strong>+ Add photo</strong>
+                <em>or use the example below</em>
+              </span>
+            ) : null}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) => onFile(e.target.files?.[0] || null)}
+            />
+          </label>
+          {media?.samplePhotoUrl ? (
+            <button
+              type="button"
+              className="btn btn-secondary example-photo-btn"
+              disabled={busy}
+              onClick={useExamplePhoto}
+            >
+              Use example person photo
+            </button>
+          ) : null}
+          <p className="hint tight">
+            Clear, centered, front-facing solo portrait. JPG, PNG or WebP. Kept {catalog?.retentionDays ?? 7}{" "}
+            days — delete anytime on your result page.
+          </p>
+          {fileName ? <p className="muted tight">{fileName}</p> : null}
+          {accessToken ? (
+            <p className="muted tight">
+              Credits on this device: <strong style={{ color: "var(--ink)" }}>{credits}</strong>
+            </p>
+          ) : null}
+
+          <label className="field-label" htmlFor="notify-email">
+            Email for result link
+          </label>
+          <input
+            id="notify-email"
+            className="text-input"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              localStorage.setItem(EMAIL_KEY, e.target.value.trim().toLowerCase());
+            }}
+          />
+          <p className="hint tight">
+            We email you from {SUPPORT_EMAIL} when the short is ready. Replies go to the same inbox.
+          </p>
+
+          {!hasCredits ? (
+            <div className="packs compact" role="listbox" aria-label="Credit packs">
+              {packs.map((pack) => (
+                <button
+                  key={pack.id}
+                  type="button"
+                  className={`pack ${selectedPack === pack.id ? "selected" : ""} ${pack.recommended ? "recommended" : ""}`}
+                  onClick={() => {
+                    setSelectedPack(pack.id);
+                    localStorage.setItem(PACK_KEY, pack.id);
+                  }}
+                >
+                  <span>
+                    {pack.label}
+                    {pack.recommended ? <span className="tag">Recommended</span> : null}
+                  </span>
+                  <span className="price">{formatUsd(pack.priceCents)}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="create-credit-note">
+              <p style={{ margin: 0 }}>
+                <strong>1 credit = 1 finished Riding Lion short.</strong> You have {credits} ready.
+              </p>
+            </div>
+          )}
+
+          <label className="consent">
+            <input
+              type="checkbox"
+              checked={consented}
+              onChange={(e) => setConsented(e.target.checked)}
+            />
+            <span>
+              I’m 18+ and have permission to animate every uploaded subject. I will not use the result to
+              impersonate or deceive anyone.
+            </span>
+          </label>
+
+          <button
+            className="btn btn-primary"
+            disabled={!assetId || !consented || !emailOk || busy}
+            onClick={onPrimary}
+          >
+            {busy ? "Working…" : ctaLabel}
+          </button>
+          {packLine ? (
+            <p className="muted tight center-text">
+              Credits: {packLine}. No subscription.
+            </p>
+          ) : null}
+          {error ? <div className="notice danger">{error}</div> : null}
+        </div>
+      </section>
 
       <section className="section" id="examples" aria-labelledby="examples-heading">
         <h2 id="examples-heading">Riding Lion. A fixed short, a new face.</h2>
@@ -374,17 +364,31 @@ export function HomePage() {
               <div className="phone-frame">
                 <img src={media.samplePhotoUrl} alt="Example portrait for AI photo to video" />
               </div>
+            ) : coverUrl ? (
+              <div className="phone-frame">
+                <img src={coverUrl} alt="Template cover" />
+              </div>
             ) : (
-              <div className="phone-frame empty-frame">Sample photo pending</div>
+              <div className="phone-frame empty-frame">Loading sample…</div>
             )}
             <figcaption>Your photo moment</figcaption>
           </figure>
           <figure>
             <div className="phone-frame">
               {resultVideoSrc ? (
-                <video src={resultVideoSrc} muted loop playsInline controls title="Result preview" />
+                <video
+                  src={resultVideoSrc}
+                  poster={coverUrl}
+                  muted
+                  loop
+                  playsInline
+                  controls
+                  title="Result preview"
+                />
+              ) : coverUrl ? (
+                <img src={coverUrl} alt="Preview cover" />
               ) : (
-                <div className="empty-frame">Preview pending</div>
+                <div className="empty-frame">Loading preview…</div>
               )}
             </div>
             <figcaption>Your Riding Lion short</figcaption>
@@ -407,11 +411,11 @@ export function HomePage() {
         </ol>
       </section>
 
-      <section className="section" id="pricing-detail" aria-labelledby="pricing-heading">
+      <section className="section" id="pricing" aria-labelledby="pricing-heading">
         <h2 id="pricing-heading">Riding Lion credits. Pay once, keep making shorts.</h2>
         <p>
           Each finished clip uses <strong>1 credit</strong>. No subscription. Recommended pack: 3 credits for{" "}
-          {packs.find((p) => p.recommended) ? formatUsd(packs.find((p) => p.recommended)!.priceCents) : "$19.99"}.
+          {recommendedPrice}.
         </p>
         <div className="packs">
           {packs.map((pack) => (
@@ -436,7 +440,11 @@ export function HomePage() {
             </button>
           ))}
         </div>
-        <a className="btn btn-primary" href="#create" style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 14 }}>
+        <a
+          className="btn btn-primary"
+          href="#create"
+          style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 14 }}
+        >
           Create a video
         </a>
       </section>

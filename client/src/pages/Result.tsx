@@ -3,6 +3,34 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api, TOKEN_KEY, type Job } from "../api";
 import { SITE, usePageSeo } from "../seo";
 
+function friendlyFailure(job: Job): { title: string; detail: string } {
+  const code = (job.errorCode || "").toLowerCase();
+  const raw = `${job.errorCode || ""} ${job.errorMessage || ""}`.toLowerCase();
+  if (code.includes("content_rejected") || raw.includes("422")) {
+    return {
+      title: "We couldn’t finish this short",
+      detail:
+        "The model rejected this photo or likeness combination. You can refund this credit and try a clearer, authorized solo portrait.",
+    };
+  }
+  if (code.includes("storage")) {
+    return {
+      title: "We couldn’t save your clip",
+      detail: "Generation may have finished, but storage failed. Request a refund and try again.",
+    };
+  }
+  return {
+    title: "Generation did not complete",
+    detail: "Something went wrong while making your short. You can request a refund for this credit.",
+  };
+}
+
+function refundLabel(status: string) {
+  if (status === "refunded") return "Credit restored";
+  if (status === "pending") return "Refund pending";
+  return "Credit not refunded yet";
+}
+
 export function ResultPage() {
   const { accessToken = "" } = useParams();
   const [params] = useSearchParams();
@@ -82,6 +110,7 @@ export function ResultPage() {
   const pending = job && ["queued", "submitting", "submitted", "processing"].includes(job.status);
   const failed = job && ["failed", "storage_failed"].includes(job.status);
   const ok = job?.status === "succeeded";
+  const failureCopy = job && failed ? friendlyFailure(job) : null;
 
   return (
     <div className={`center-page${pending ? " making-page" : ""}`}>
@@ -163,11 +192,11 @@ export function ResultPage() {
             </div>
           ) : null}
 
-          {failed ? (
+          {failureCopy ? (
             <div className="notice danger">
-              <strong>{job.errorCode || "failed"}</strong>
-              <div style={{ marginTop: 6 }}>{job.errorMessage || "Generation did not complete."}</div>
-              <div style={{ marginTop: 8 }}>Refund status: {job.refundStatus}</div>
+              <strong>{failureCopy.title}</strong>
+              <div style={{ marginTop: 6 }}>{failureCopy.detail}</div>
+              <div style={{ marginTop: 8 }}>{refundLabel(job.refundStatus)}</div>
             </div>
           ) : null}
 

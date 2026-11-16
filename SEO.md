@@ -32,13 +32,14 @@ Crawlables: `robots.txt`, `sitemap.xml` (absolute locs rewritten at deploy if ne
 Reference structure from ai-tinydesk.com (not visual clone):
 
 1. Nav: brand · Examples · How it works · Pricing · FAQ · **Create a video** CTA
-2. Hero split: left = H1 + lede + create card (upload, consent, packs, CTA); right = vertical preview + input polaroid + “What you get” caption
+2. Full-bleed hero: brand H1 + one lede + CTA group over edge-to-edge sample/template film (create form is below the fold)
 3. Value ribbon keywords: Your photo + AI face replacement + 8–10s short + One-time credits
-4. Examples section (brand-in-H2)
-5. How it works (numbered steps / HowTo schema)
-6. Pricing detail (packs + Create CTA)
-7. FAQ with brand-repeated questions (FAQPage JSON-LD)
-8. Footer disclaimer + internal links
+4. Create section `#create` (upload, consent, packs, CTA — interaction panel)
+5. Examples section (brand-in-H2)
+6. How it works (numbered steps / HowTo schema)
+7. Pricing detail (packs + Create CTA)
+8. FAQ with brand-repeated questions (FAQPage JSON-LD)
+9. Footer disclaimer + internal links
 
 ## GEO checklist
 
