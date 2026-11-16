@@ -31,6 +31,68 @@ jobs:
       - name: Build client
         run: npm run build:client
 
+      - name: Ensure D1 + R2
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import json, os, re, subprocess, pathlib
+
+          def run(cmd):
+              print("+", " ".join(cmd), flush=True)
+              p = subprocess.run(cmd, text=True, capture_output=True)
+              out = (p.stdout or "") + (p.stderr or "")
+              print(out)
+              return p.returncode, out
+
+          cfg_path = pathlib.Path("wrangler.jsonc")
+          text = cfg_path.read_text()
+          # strip JSONC comments for parsing names only; we patch with regex
+          placeholder = "00000000-0000-0000-0000-000000000001"
+          db_name = "riding-lion"
+          bucket = "riding-lion-private"
+
+          code, out = run(["npx", "wrangler", "d1", "list", "--json"])
+          db_id = None
+          if code == 0:
+              try:
+                  rows = json.loads(out.strip().splitlines()[-1] if False else out)
+                  if isinstance(rows, dict) and "result" in rows:
+                      rows = rows["result"]
+                  if isinstance(rows, list):
+                      for row in rows:
+                          name = row.get("name") or row.get("database_name")
+                          if name == db_name:
+                              db_id = row.get("uuid") or row.get("id") or row.get("database_id")
+                              break
+              except Exception as e:
+                  print("parse d1 list failed", e)
+
+          if not db_id:
+              code, out = run(["npx", "wrangler", "d1", "create", db_name])
+              m = re.search(r'"database_id"\s*:\s*"([^"]+)"', out)
+              if not m:
+                  m = re.search(r"database_id\s*=\s*\"([^\"]+)\"", out)
+              if not m:
+                  m = re.search(r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})", out, re.I)
+              if not m:
+                  raise SystemExit("Could not create/find D1 database_id")
+              db_id = m.group(1)
+
+          print("Using D1 database_id=", db_id)
+          text2 = re.sub(
+              r'("database_id"\s*:\s*")[^"]+(")',
+              rf"\g<1>{db_id}\g<2>",
+              text,
+              count=1,
+          )
+          cfg_path.write_text(text2)
+
+          run(["npx", "wrangler", "r2", "bucket", "create", bucket])
+          PY
+
       - name: Apply D1 migrations
         uses: cloudflare/wrangler-action@v3
         with:
@@ -40,6 +102,7 @@ jobs:
           packageManager: npm
 
       - name: Deploy Worker
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -74,10 +137,9 @@ jobs:
           put_secret APP_BASE_URL "$APP_BASE_URL"
 
       - name: Seed R2 template assets
-        if: vars.SEED_R2_ON_DEPLOY == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          chmod +x scripts/seed-remote-assets.sh scripts/seed-local-assets.sh
+          chmod +x scripts/seed-remote-assets.sh
           bash scripts/seed-remote-assets.sh
