@@ -172,10 +172,16 @@ export async function extractAssetTags(env: Env): Promise<string> {
     const res = await env.ASSETS.fetch(new Request("https://assets.local/index.html"));
     if (!res.ok) return "";
     const html = await res.text();
-    const tags = [...html.matchAll(/<(?:link|script)\b[^>]*>/gi)].map((m) => m[0]);
-    return tags
-      .filter((t) => /rel=["']stylesheet["']|type=["']module["']|src=/.test(t))
-      .join("\n  ");
+    // IMPORTANT: include full <script ...></script> pairs. Injecting only the
+    // opening tag leaves </script> missing and browsers treat following HTML
+    // (including CSS <link>) as script source — styles appear “lost”.
+    const links = [...html.matchAll(/<link\b[^>]*>/gi)]
+      .map((m) => m[0])
+      .filter((t) => /rel=["']stylesheet["']/i.test(t) && /\/assets\//i.test(t));
+    const scripts = [
+      ...html.matchAll(/<script\b[^>]*\bsrc=["'][^"']+["'][^>]*>\s*<\/script>/gi),
+    ].map((m) => m[0]);
+    return [...links, ...scripts].join("\n  ");
   } catch {
     return "";
   }
